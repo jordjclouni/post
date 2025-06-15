@@ -1,19 +1,27 @@
-# Stage 1: Build React App
-FROM node:20 as build
-
-ARG REACT_APP_API_URL
-ENV REACT_APP_API_URL=${REACT_APP_API_URL}
+# Этап сборки
+FROM node:20 AS build
 
 WORKDIR /app
-COPY frontend/package*.json ./
+COPY package.json package-lock.json ./
 RUN npm install
-COPY frontend/ .
+COPY . .
+
+# Аргумент для API URL
+ARG REACT_APP_API_URL
+ENV REACT_APP_API_URL=$REACT_APP_API_URL
+
+# Сборка
 RUN npm run build
 
-# Stage 2: Serve with nginx
+# Этап запуска — nginx
 FROM nginx:alpine
+
+# Конфиг nginx
 COPY nginx.conf /etc/nginx/conf.d/default.conf
-COPY --from=build /app/build /usr/share/nginx/html
+
+# Копируем собранное приложение
+COPY --from=build /app/dist /usr/share/nginx/html
 
 EXPOSE 80
+
 CMD ["nginx", "-g", "daemon off;"]
