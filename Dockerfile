@@ -6,37 +6,13 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY backend/ .
 
 # ==== Frontend ====
-# Этап сборки
-FROM node:20 AS build
+FROM node:20 as frontend
 
-WORKDIR /app
-
-# Копируем package.json и package-lock.json
+WORKDIR /app/frontend
 COPY frontend/package*.json ./
-
-# Устанавливаем зависимости
 RUN npm install
-
-# Копируем остальной код фронтенда
 COPY frontend/ .
-
-# Строим проект
 RUN npm run build
-
-# Этап продакшн-сервера
-FROM nginx:alpine
-
-# Копируем nginx конфиг
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-
-# Копируем билд с предыдущего этапа
-COPY --from=build /app/dist /usr/share/nginx/html
-
-# Открываем порт 80
-EXPOSE 80
-
-CMD ["nginx", "-g", "daemon off;"]
-
 
 # ==== Production image ====
 FROM nginx:alpine
