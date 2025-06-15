@@ -10,9 +10,10 @@ RUN npm run build || { echo "Build failed. Node version: $(node -v), NPM version
 FROM python:3.12-slim AS backend
 WORKDIR /app
 COPY backend/requirements.txt .
-# Создаем виртуальную среду для обхода externally-managed-environment
+# Создаем виртуальную среду
 RUN python3 -m venv /app/venv
-RUN /app/venv/bin/pip install --no-cache-dir -r requirements.txt
+# Устанавливаем зависимости с отладкой
+RUN /app/venv/bin/pip install --no-cache-dir -r requirements.txt || { echo "Pip install failed. Checking environment..."; /app/venv/bin/pip --version; exit 1; }
 COPY backend/ .
 
 # Копируем сборку фронтенда во Flask-папку
