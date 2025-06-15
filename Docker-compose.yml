@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  # Бэкенд (Flask API)
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: crossbooking_backend
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_APP=app.py
+      - FLASK_ENV=production
+      - SQLALCHEMY_DATABASE_URI=postgresql://postgres:jRZecIKYBXtAMTcrBElbkoItwqqahUru@db/railway
+      - YANDEX_MAPS_API_KEY=6ad7e365-54e3-4482-81b5-bd65125aafbf
+    volumes:
+      - uploads:/app/uploads
+    depends_on:
+      - db
+    restart: unless-stopped
+
+  # Фронтенд (React + Nginx)
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      args:
+        - REACT_APP_API_URL=http://backend:5000
+    container_name: crossbooking_frontend
+    ports:
+      - "80:80"
+    environment:
+      - REACT_APP_API_URL=http://localhost:5000
+    restart: unless-stopped
+
+  # PostgreSQL
+  db:
+    image: postgres:15
+    container_name: crossbooking_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: jRZecIKYBXtAMTcrBElbkoItwqqahUru
+      POSTGRES_DB: railway
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  uploads:
